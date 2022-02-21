@@ -1,13 +1,16 @@
 import numpy as np
+import glob
 from PIL import Image
+#import cv2
+import matplotlib.pyplot as plt
 ## Task 4: Prediction
 
-f1 = open("/Program_Files/frame25.png","rb")
-f2 = Image.open("~/Program_Files/frame26.png")
-f3 = Image.open("/Program_Files/frame27.png")
+img_path = glob.glob('Program_Files/*.png')
+img_data = []
+for path in img_path:
+    img_data.append(np.array(Image.open(path)))
 
-if f1:
-    print("Hei")
-else:
-    print("Nei")
-
+print(img_data[0])
+plt.figure()
+plt.imshow(img_data[0])
+#cv2.imshow(("Window", img_data[0]))
