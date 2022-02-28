@@ -90,9 +90,9 @@ def scan_img(img_data, img_nr,size=16):
             # Store old coordinates of the block
             o_vec_x.append(x)
             o_vec_y.append(y)
-            # Get displacement of block
-            n_vec_x.append(x-new[0])
-            n_vec_y.append(y-new[1])
+            # Get displacement of block, pointing at previous block location
+            n_vec_x.append(new[0]-x)
+            n_vec_y.append(new[1]-y)
 
         # Add values to matrix
         orig_vec_x.append(o_vec_x)
