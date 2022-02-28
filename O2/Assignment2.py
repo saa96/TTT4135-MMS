@@ -24,9 +24,9 @@ print(macro_block_size)
 def cost_func(curr_block,prev_block):
     return np.mean(curr_block - prev_block)**2
 
-def get_macro_block(img_nr, idx_y, idx_x, size=16):
+def get_block(img_nr, idx_y, idx_x, size=16):
     """
-    Outputs a macro block with dimentions (step,step).
+    Outputs a block with dimentions (size,size).
 
     Input description:
     img_nr: which image in img_data that is evaluated
@@ -38,49 +38,53 @@ def get_macro_block(img_nr, idx_y, idx_x, size=16):
     """
     return img_data[img_nr][idx_y:(idx_y+size), idx_x:(idx_x+size)]
 
-#def search_8(): # TODO: implemented for b)
-
-def search_16(img_nr, idx_y, idx_x, size=16):
+def search(img_nr, idx_y, idx_x, size=16):
     """
     Searches in block of 32 pixels.
 
     Return: new coordinate of block
     """
     block_list = []
-    block_list.append(get_macro_block(img_nr-1, idx_y,      idx_x,      size))  # Origin
-    block_list.append(get_macro_block(img_nr-1, idx_y,      idx_x+size, size))  # Right
-    block_list.append(get_macro_block(img_nr-1, idx_y+size, idx_x,      size))  # Down
-    block_list.append(get_macro_block(img_nr-1, idx_y+size, idx_x+size, size))  # Right and down
+    coord_list = []
+    for y in range(0,32,size):
+        for x in range(0,32,size):
+            block_list.append(get_block(img_nr-1, idx_y+y, idx_x+x, size))
+            coord_list.append((idx_x+x,idx_y+y))
 
     val_list = []
-    current_block = get_macro_block(img_nr, idx_y, idx_x, size=16)
+    current_block = get_block(img_nr, idx_y, idx_x, size=16)
     for block in block_list:
         if block.shape[0] and block.shape[1]:          
             val_list.append(cost_func(current_block, block))
         else:
             val_list.append(100)
     
-    displacement = np.argmin(val_list)
+    disp_indx = np.argmin(val_list)
 
-   #print("Block is in position %i." % displacement)
-
-    if displacement == 0:
-        return (idx_y,  idx_x)
-    elif displacement == 1:
-        return (idx_y,  idx_x + size)
-    elif displacement == 2:
-        return (idx_y + size,  idx_x)
-    elif displacement == 3:
-        return (idx_y + size,  idx_x + size)
+    return coord_list[disp_indx]
 
     
 def scan_img(img_data, img_nr,size=16):
     """
     Currently printes out the old and new position of the 16x16 block
     """
+    orig_vec = []
+    new_vec  = []
     for y in range(0,(img_data[img_nr].shape)[0],size):
+        o_vec = []
+        n_vec = []
         for x in range(0,(img_data[img_nr].shape)[1],size):
-            new = search_16(img_nr, y, x)
-            print("Old coord: (%i,%i)\nNew coord: (%i,%i)\n" % (x,y,new[1],new[0]))
+            
+            new = search(img_nr, y, x)
+            o_vec.append((x,y))
+            n_vec.append(new)
+            #print("Old coord: (%i,%i)\nNew coord: (%i,%i)\n" % (x,y, new[0],new[1]))
+        orig_vec.append(o_vec)
+        new_vec.append(n_vec)
     
-scan_img(img_data,2)
+    return orig_vec, new_vec
+    
+old, new = scan_img(img_data,1)
+
+# plt.quiver(old, new) # TODO: Figure out how to use this
+# plt.show()
