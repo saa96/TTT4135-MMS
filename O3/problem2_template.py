@@ -6,6 +6,9 @@ import torchvision.transforms as transforms
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from sklearn.model_selection import train_test_split
+import sklearn
+
 
 
 transform = transforms.Compose([transforms.ToTensor(),
@@ -17,8 +20,17 @@ batch_size=4
 
 trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
                                         download=True, transform=transform)
+# Splitting the training set into train and validation sets.
+trainset, valset = train_test_split(trainset, test_size=0.2, random_state=1)
+
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                           shuffle=True, **kwargs)
+valloader = torch.utils.data.DataLoader(valset, batch_size=batch_size,
+                                          shuffle=True, **kwargs)
+
+print(len(trainset))
+print("Len of train={} and len of val={}".format(len(trainset),len(valset)))
+
 testset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                        download=True, transform=transform)
 testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
