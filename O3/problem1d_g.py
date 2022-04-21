@@ -20,8 +20,11 @@ plt.show()
 
 ## 1d)
 
-distortion_measuer = (1/len(x_val))*(np.square(x_val - norm_val))
+sigmasq = 1.0
+D = np.linspace(1e-6, 2*sigmasq,10000)
+R = np.maximum(0.5*np.log(sigmasq/D),0)
 
 plt.figure()
-plt.plot(x_val,distortion_measuer)
+plt.plot(D, R)
+
 plt.show()
