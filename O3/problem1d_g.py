@@ -38,22 +38,29 @@ def uniform_quantizer(samples,nbits):
     maxVal = sorted_samples[-1]
     ValRange = maxVal - minVal
     quantInterval = ValRange/(2**nbits)
-
+    print(quantInterval)
     for sample in samples:
-        curr_interval = quantInterval + quantInterval/2
+        curr_interval = minVal + quantInterval/2
         while(sample>curr_interval):
             curr_interval += quantInterval
         quantizedSample.append(curr_interval-quantInterval/2)
 
     return quantizedSample
 
-print("_____quantized_____\n")
-quantized_samples = np.sort(uniform_quantizer(norm_val,3))
-sorted_samples = np.sort(norm_val)
+def test_quantizer(samples):
+    errors = []
+    print("testing")
+    quantized_samples = np.sort(uniform_quantizer(norm_val,3))
+    sorted_samples = np.sort(norm_val)
+    for x in range(0,len(sorted_samples)):
+        print(quantized_samples[x],sorted_samples[x])
+        errors.append(abs(quantized_samples[x]-sorted_samples[x]))
+    print("error",np.max(errors))
+    ind = np.argmax(errors)
+    print(ind)
+    print(quantized_samples[ind],sorted_samples[ind])
 
-for x in range(0,100):
-    print(quantized_samples[x],sorted_samples[x])
-
+test_quantizer(norm_val)
 
 
 ##def quantize(nbits):
