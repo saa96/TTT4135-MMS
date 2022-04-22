@@ -118,6 +118,7 @@ class Net(nn.Module):
         x = x.view(batch_size,-1)
         x = self.classifier(x)
         return x
+
 def compute_loss_and_accuracy(
         dataloader: torch.utils.data.DataLoader,
         model: torch.nn.Module,
@@ -171,15 +172,15 @@ val_hist_loss = []
 val_hist_acc = []
 train_hist_loss = []
 train_hist_acc = []
-early_stop_count = 4
+early_stop_count = 3
 
 net = Net()
 net.to(device)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
-
-for epoch in range(5):  # loop over the dataset multiple times
+number_of_epochs = 10
+for epoch in range(number_of_epochs):  # loop over the dataset multiple times
 
     running_loss = 0.0
     hit = 0.0
@@ -209,7 +210,8 @@ for epoch in range(5):  # loop over the dataset multiple times
 
         # print statistics
         running_loss += loss.item()
-    print('[%d] training loss: %.3f' % (epoch + 1, running_loss / i))
+    train_loss = running_loss / i
+    print('[%d] training loss: %.3f' % (epoch + 1, train_loss))
 
     # validation step
     #val_acc = 0
@@ -219,7 +221,7 @@ for epoch in range(5):  # loop over the dataset multiple times
     val_loss, val_acc = compute_loss_and_accuracy(valloader, net, criterion)
     val_hist_loss.append(val_loss)
     val_hist_acc.append(val_acc)
-
+    train_hist_loss.append(train_loss)
 
     print('[{}] validation loss: {}, validation accuracy: {}'.format(epoch + 1, val_loss, val_acc))
 
@@ -231,6 +233,22 @@ for epoch in range(5):  # loop over the dataset multiple times
 # Printing test loss and accuracy
 test_loss, test_acc = compute_loss_and_accuracy(testloader, net, criterion)
 
+print("Test loss: {}, test accuracy: {}".format(test_loss,test_acc))
+
+x = np.linspace(0,len(val_hist_loss),len(val_hist_loss))
+plt.figure()
+plt.plot(x,val_hist_loss,x,train_hist_loss)
+plt.title("Cross entropy loss")
+plt.legend(['Validation loss', 'Training Loss'])
+plt.xlabel('Epochs'), plt.ylabel("Loss")
+plt.show()
+
+plt.figure()
+plt.plot(x,val_hist_acc)
+plt.title("Accuracy")
+plt.legend(['Validation accuracy'])
+plt.xlabel('Epochs'), plt.ylabel("Accuracy")
+plt.show()
 
 
 # Plotting of PR-curve
