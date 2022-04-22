@@ -30,7 +30,7 @@ valloader = torch.utils.data.DataLoader(valset, batch_size=batch_size,
                                           shuffle=True, **kwargs)
 
 #print(trainset)
-#print("Len of train={} and len of val={}".format(len(trainset),len(valset)))
+print("Len of train={} and len of val={}".format(len(trainset),len(valset)))
 
 testset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                        download=True, transform=transform)
@@ -52,33 +52,60 @@ class Net(nn.Module):
             #nn.MaxPool2d(kernel_size=2,stride=2),
             nn.Conv2d(
                 in_channels=3,
-                out_channels=6,
+                out_channels=32,
                 kernel_size=5,
                 stride=1,
                 padding=2
             ),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2,stride=2),
             nn.Conv2d(
-                in_channels=6,
-                out_channels=16,
+                in_channels=32,
+                out_channels=32,
                 kernel_size=5,
                 stride=1,
                 padding=2
             ),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2,stride=2),
+            nn.BatchNorm2d(32),
             nn.Conv2d(
-                in_channels=16,
-                out_channels=16,
+                in_channels=32,
+                out_channels=64,
+                kernel_size=5,
+                stride=1,
+                padding=2
+            ),
+            nn.ReLU(),
+            nn.Conv2d(
+                in_channels=64,
+                out_channels=64,
                 kernel_size=5,
                 stride=1,
                 padding=2
             ),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2,stride=2),
+            nn.BatchNorm2d(64),
+            nn.Conv2d(
+                in_channels=64,
+                out_channels=128,
+                kernel_size=5,
+                stride=1,
+                padding=2
+            ),
+            nn.ReLU(),
+            nn.Conv2d(
+                in_channels=128,
+                out_channels=128,
+                kernel_size=5,
+                stride=1,
+                padding=2
+            ),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2,stride=2),
+            nn.BatchNorm2d(128)
         )
-        self.num_output_features = 4*4*16
+        self.num_output_features = 4*4*128
         self.classifier = nn.Sequential(
             nn.Linear(self.num_output_features, 120),
             nn.Linear(120,84),
@@ -91,7 +118,6 @@ class Net(nn.Module):
         x = x.view(batch_size,-1)
         x = self.classifier(x)
         return x
-
 def compute_loss_and_accuracy(
         dataloader: torch.utils.data.DataLoader,
         model: torch.nn.Module,
@@ -134,7 +160,7 @@ def do_early_stop(val_loss_hist, early_stop_count):
         return False
     
     # We only care about the last [early_stop_count] losses.
-    relevant_loss = val_loss[-early_stop_count:]
+    relevant_loss = val_loss_hist[-early_stop_count:]
     first_loss = relevant_loss[0]
     if first_loss == min(relevant_loss):
         print("Early stop criteria met")
@@ -195,12 +221,16 @@ for epoch in range(5):  # loop over the dataset multiple times
     val_hist_acc.append(val_acc)
 
 
-    print('[%d] validation loss: %.3f' % (epoch + 1, val_loss))
+    print('[{}] validation loss: {}, validation accuracy: {}'.format(epoch + 1, val_loss, val_acc))
 
 
-    if do_early_stop(val_loss, val_hist_loss):
+    if do_early_stop(val_hist_loss, early_stop_count):
         print("Early stopp")
         break
+
+# Printing test loss and accuracy
+test_loss, test_acc = compute_loss_and_accuracy(testloader, net, criterion)
+
 
 
 # Plotting of PR-curve
